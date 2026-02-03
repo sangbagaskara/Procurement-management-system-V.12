@@ -551,6 +551,7 @@
                 <button class="nav-tab" data-tab="packages" onclick="switchTab('packages')"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" /></svg>Packages</button>
                 <button class="nav-tab" data-tab="projects" onclick="switchTab('projects')"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" /></svg>Projects</button>
                 <button class="nav-tab" data-tab="risks" onclick="switchTab('risks')"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" /></svg>Risk Analysis</button>
+                <button class="nav-tab" data-tab="schedule" onclick="switchTab('schedule')"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>Schedule</button>
             </nav>
         </div>
     </header>
@@ -705,6 +706,131 @@
                         </thead>
                         <tbody id="riskTableBody"></tbody>
                     </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Schedule Tab -->
+        <div id="schedule" class="tab-content">
+            <div class="card">
+                <div class="card-header">
+                    <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
+                        <h2 class="card-title">Delivery & Material Schedule</h2>
+                        <div style="display: flex; gap: 0.5rem; align-items: center;">
+                            <button class="btn btn-secondary" onclick="exportSchedule()">
+                                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" style="width: 18px; height: 18px;"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+                                Export
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <!-- Filters -->
+                    <div class="filter-bar" style="margin-bottom: 1.5rem;">
+                        <div class="filter-group">
+                            <label style="color: #94a3b8; font-size: 0.875rem; margin-right: 0.5rem;">View:</label>
+                            <select class="filter-select" id="scheduleViewFilter" onchange="renderScheduleGantt()">
+                                <option value="delivery">Delivery Schedule</option>
+                                <option value="material">Material On Site</option>
+                                <option value="both">Both</option>
+                            </select>
+                        </div>
+                        <div class="filter-group">
+                            <label style="color: #94a3b8; font-size: 0.875rem; margin-right: 0.5rem;">Discipline:</label>
+                            <select class="filter-select" id="scheduleDisciplineFilter" onchange="renderScheduleGantt()">
+                                <option value="all">All Disciplines</option>
+                            </select>
+                        </div>
+                        <div class="filter-group">
+                            <label style="color: #94a3b8; font-size: 0.875rem; margin-right: 0.5rem;">Status:</label>
+                            <select class="filter-select" id="scheduleStatusFilter" onchange="renderScheduleGantt()">
+                                <option value="all">All Status</option>
+                                <option value="upcoming">Upcoming</option>
+                                <option value="ongoing">Ongoing</option>
+                                <option value="delayed">Delayed</option>
+                                <option value="completed">Completed</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Gantt Chart Container -->
+                    <div id="ganttChartContainer" style="overflow-x: auto; overflow-y: auto; max-height: 600px;">
+                        <!-- Gantt chart will be rendered here -->
+                    </div>
+
+                    <!-- Legend -->
+                    <div style="margin-top: 1.5rem; padding: 1rem; background: rgba(15, 23, 42, 0.5); border-radius: 12px;">
+                        <div style="display: flex; flex-wrap: wrap; gap: 1.5rem; font-size: 0.875rem;">
+                            <div style="display: flex; align-items: center; gap: 0.5rem;">
+                                <div style="width: 20px; height: 12px; background: #06b6d4; border-radius: 2px;"></div>
+                                <span style="color: #94a3b8;">Plan Delivery</span>
+                            </div>
+                            <div style="display: flex; align-items: center; gap: 0.5rem;">
+                                <div style="width: 20px; height: 12px; background: #14b8a6; border-radius: 2px;"></div>
+                                <span style="color: #94a3b8;">Actual Delivery</span>
+                            </div>
+                            <div style="display: flex; align-items: center; gap: 0.5rem;">
+                                <div style="width: 20px; height: 12px; background: #8b5cf6; border-radius: 2px;"></div>
+                                <span style="color: #94a3b8;">Plan Material On Site</span>
+                            </div>
+                            <div style="display: flex; align-items: center; gap: 0.5rem;">
+                                <div style="width: 20px; height: 12px; background: #a855f7; border-radius: 2px;"></div>
+                                <span style="color: #94a3b8;">Actual Material On Site</span>
+                            </div>
+                            <div style="display: flex; align-items: center; gap: 0.5rem;">
+                                <div style="width: 20px; height: 12px; background: #ef4444; border-radius: 2px;"></div>
+                                <span style="color: #94a3b8;">Delayed</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Schedule Statistics -->
+            <div class="stats-grid" style="margin-top: 1.5rem;">
+                <div class="stat-card">
+                    <div class="stat-card-content">
+                        <div>
+                            <div class="stat-label">Total Packages</div>
+                            <div class="stat-value" id="schedTotalPackages">0</div>
+                        </div>
+                        <div class="stat-icon blue">
+                            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/></svg>
+                        </div>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-card-content">
+                        <div>
+                            <div class="stat-label">In Transit</div>
+                            <div class="stat-value" id="schedInTransit">0</div>
+                        </div>
+                        <div class="stat-icon teal">
+                            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+                        </div>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-card-content">
+                        <div>
+                            <div class="stat-label">On Site</div>
+                            <div class="stat-value" id="schedOnSite">0</div>
+                        </div>
+                        <div class="stat-icon emerald">
+                            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                        </div>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-card-content">
+                        <div>
+                            <div class="stat-label">Delayed</div>
+                            <div class="stat-value" id="schedDelayed">0</div>
+                        </div>
+                        <div class="stat-icon red">
+                            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -1035,6 +1161,244 @@
     </div>
 
     <script>
+
+        // ========================================
+        // SUPABASE CONFIGURATION
+        // ========================================
+        // GANTI DENGAN CREDENTIALS SUPABASE ANDA!
+        const SUPABASE_URL = 'https://YOUR_PROJECT.supabase.co';
+        const SUPABASE_KEY = 'YOUR_ANON_KEY_HERE';
+        const USE_SUPABASE = false; // Set true setelah setup Supabase
+        
+        // Supabase Client (simple implementation)
+        const supabase = {
+            async query(table, options = {}) {
+                if (!USE_SUPABASE) return null;
+                
+                let url = `${SUPABASE_URL}/rest/v1/${table}`;
+                
+                // Add query parameters
+                if (options.select) url += `?select=${options.select}`;
+                if (options.eq) url += `${options.select ? '&' : '?'}${options.eq.column}=eq.${options.eq.value}`;
+                if (options.order) url += `&order=${options.order}`;
+                
+                try {
+                    const response = await fetch(url, {
+                        method: 'GET',
+                        headers: {
+                            'apikey': SUPABASE_KEY,
+                            'Authorization': `Bearer ${SUPABASE_KEY}`
+                        }
+                    });
+                    
+                    if (!response.ok) {
+                        console.error('Supabase query error:', await response.text());
+                        return null;
+                    }
+                    
+                    return await response.json();
+                } catch (error) {
+                    console.error('Supabase error:', error);
+                    return null;
+                }
+            },
+            
+            async insert(table, data) {
+                if (!USE_SUPABASE) return null;
+                
+                try {
+                    const response = await fetch(`${SUPABASE_URL}/rest/v1/${table}`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'apikey': SUPABASE_KEY,
+                            'Authorization': `Bearer ${SUPABASE_KEY}`,
+                            'Prefer': 'return=representation'
+                        },
+                        body: JSON.stringify(data)
+                    });
+                    
+                    if (!response.ok) {
+                        console.error('Supabase insert error:', await response.text());
+                        return null;
+                    }
+                    
+                    return await response.json();
+                } catch (error) {
+                    console.error('Supabase error:', error);
+                    return null;
+                }
+            },
+            
+            async update(table, id, data) {
+                if (!USE_SUPABASE) return null;
+                
+                try {
+                    const response = await fetch(`${SUPABASE_URL}/rest/v1/${table}?id=eq.${id}`, {
+                        method: 'PATCH',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'apikey': SUPABASE_KEY,
+                            'Authorization': `Bearer ${SUPABASE_KEY}`,
+                            'Prefer': 'return=representation'
+                        },
+                        body: JSON.stringify(data)
+                    });
+                    
+                    if (!response.ok) {
+                        console.error('Supabase update error:', await response.text());
+                        return null;
+                    }
+                    
+                    return await response.json();
+                } catch (error) {
+                    console.error('Supabase error:', error);
+                    return null;
+                }
+            },
+            
+            async delete(table, id) {
+                if (!USE_SUPABASE) return null;
+                
+                try {
+                    const response = await fetch(`${SUPABASE_URL}/rest/v1/${table}?id=eq.${id}`, {
+                        method: 'DELETE',
+                        headers: {
+                            'apikey': SUPABASE_KEY,
+                            'Authorization': `Bearer ${SUPABASE_KEY}`
+                        }
+                    });
+                    
+                    if (!response.ok) {
+                        console.error('Supabase delete error:', await response.text());
+                        return null;
+                    }
+                    
+                    return true;
+                } catch (error) {
+                    console.error('Supabase error:', error);
+                    return null;
+                }
+            }
+        };
+        
+        // ========================================
+        // LOAD DATA FROM SUPABASE
+        // ========================================
+        async function loadDataFromSupabase() {
+            if (!USE_SUPABASE) {
+                console.log('Supabase disabled, using localStorage');
+                return false;
+            }
+            
+            try {
+                showNotification('Loading data from cloud...', 'info');
+                
+                // Load projects
+                const projectsData = await supabase.query('projects', { 
+                    select: '*', 
+                    order: 'id.asc' 
+                });
+                
+                if (projectsData && projectsData.length > 0) {
+                    projects = projectsData.map(p => ({
+                        id: p.id,
+                        name: p.name,
+                        owner: p.owner,
+                        contractor: p.contractor,
+                        technologyProvider: p.technology_provider,
+                        contractType: p.contract_type,
+                        contractPrice: p.contract_price,
+                        paymentTerm: p.payment_term,
+                        startDate: p.start_date,
+                        finishDate: p.finish_date,
+                        ldDelay: p.ld_delay,
+                        ldPerformance: p.ld_performance,
+                        guaranteePower: p.guarantee_power,
+                        scopeByOwner: p.scope_by_owner
+                    }));
+                }
+                
+                // Load packages
+                const packagesData = await supabase.query('packages', { 
+                    select: '*', 
+                    order: 'id.asc' 
+                });
+                
+                if (packagesData && packagesData.length > 0) {
+                    packages = packagesData.map(p => ({
+                        id: p.id,
+                        projectId: p.project_id,
+                        initiation: p.initiation,
+                        discipline: p.discipline,
+                        area: p.area,
+                        packageName: p.package_name,
+                        description: p.description,
+                        rfqNo: p.rfq_no,
+                        contractNo: p.contract_no,
+                        vendorName: p.vendor_name,
+                        coo: p.coo,
+                        milestones: p.milestones,
+                        engineering: p.engineering,
+                        manufacture: p.manufacture,
+                        delivery: p.delivery
+                    }));
+                }
+                
+                // Load risks
+                const risksData = await supabase.query('risks', { 
+                    select: '*', 
+                    order: 'id.asc' 
+                });
+                
+                if (risksData && risksData.length > 0) {
+                    risks = risksData.map(r => ({
+                        id: r.id,
+                        projectId: r.project_id,
+                        packageId: r.package_id,
+                        category: r.category,
+                        riskDescription: r.risk_description,
+                        probability: r.probability,
+                        impact: r.impact,
+                        riskLevel: r.risk_level,
+                        status: r.status,
+                        mitigation: r.mitigation,
+                        owner: r.owner,
+                        dueDate: r.due_date,
+                        isAutoGenerated: r.is_auto_generated,
+                        generatedDate: r.generated_date
+                    }));
+                }
+                
+                console.log(`Loaded from Supabase: ${projects.length} projects, ${packages.length} packages, ${risks.length} risks`);
+                showNotification('Data loaded from cloud successfully!', 'success');
+                
+                // Save to localStorage as backup
+                saveAllData();
+                
+                return true;
+                
+            } catch (error) {
+                console.error('Error loading from Supabase:', error);
+                showNotification('Error loading from cloud, using local data', 'warning');
+                return false;
+            }
+        }
+        
+        // ========================================
+        // SYNC TO SUPABASE (when user makes changes)
+        // ========================================
+        async function syncToSupabase() {
+            if (!USE_SUPABASE) return;
+            
+            // This is a simplified sync - in production you'd want more sophisticated logic
+            console.log('Auto-sync to Supabase is handled by Google Sheets script');
+            // User edits in Google Sheets → Apps Script syncs to Supabase
+            // Website just reads from Supabase
+        }
+        
+
+
         const countries = ["Indonesia","China","Japan","South Korea","Germany","United States","Italy","France","United Kingdom","Netherlands","Singapore","Malaysia","Thailand","Vietnam","India","Taiwan","Australia"].sort();
         const incoterms = [{code:"EXW",name:"Ex Works",mode:"all",desc:"Seller makes goods available at their premises"},{code:"FCA",name:"Free Carrier",mode:"all",desc:"Seller delivers goods to carrier"},{code:"CPT",name:"Carriage Paid To",mode:"all",desc:"Seller pays freight to destination"},{code:"CIP",name:"Carriage Insurance Paid",mode:"all",desc:"Seller pays freight and insurance"},{code:"DAP",name:"Delivered at Place",mode:"all",desc:"Seller delivers at destination"},{code:"DPU",name:"Delivered at Place Unloaded",mode:"all",desc:"Seller delivers and unloads"},{code:"DDP",name:"Delivered Duty Paid",mode:"all",desc:"Seller delivers cleared for import"},{code:"FAS",name:"Free Alongside Ship",mode:"sea",desc:"Seller delivers alongside vessel"},{code:"FOB",name:"Free on Board",mode:"sea",desc:"Seller delivers on board vessel"},{code:"CFR",name:"Cost and Freight",mode:"sea",desc:"Seller pays freight to port"},{code:"CIF",name:"Cost Insurance Freight",mode:"sea",desc:"Seller pays freight and insurance to port"}];
         const milestoneLabels = [{key:'issueRFQ',label:'Issue RFQ'},{key:'receiveQuotation',label:'Receive Quotation'},{key:'issueTBE',label:'Issue TBE'},{key:'issueCBE',label:'Issue CBE'},{key:'finalNegotiation',label:'Final Negotiation'},{key:'issuePO',label:'Issue PO'},{key:'kom',label:'KOM'}];
@@ -4163,6 +4527,348 @@
                 });
             }
         });
-    </script>
+    
+        // ========================================
+        // SCHEDULE TAB - GANTT CHART FUNCTIONS
+        // ========================================
+        
+        function renderScheduleGantt() {
+            const view = document.getElementById('scheduleViewFilter').value;
+            const discipline = document.getElementById('scheduleDisciplineFilter').value;
+            const status = document.getElementById('scheduleStatusFilter').value;
+            
+            // Get filtered packages
+            let filteredPackages = packages.filter(p => p.projectId === selectedProject);
+            
+            // Apply discipline filter
+            if (discipline !== 'all') {
+                filteredPackages = filteredPackages.filter(p => p.discipline === discipline);
+            }
+            
+            // Apply status filter
+            if (status !== 'all') {
+                filteredPackages = filteredPackages.filter(p => {
+                    const delivery = p.delivery || {};
+                    const today = new Date().toISOString().split('T')[0];
+                    
+                    if (status === 'completed') {
+                        return delivery.actualDelivery100 && delivery.actualMaterialAtSite100;
+                    } else if (status === 'delayed') {
+                        return (delivery.planDelivery100 && delivery.planDelivery100 < today && !delivery.actualDelivery100) ||
+                               (delivery.planMaterialAtSite100 && delivery.planMaterialAtSite100 < today && !delivery.actualMaterialAtSite100);
+                    } else if (status === 'ongoing') {
+                        return (delivery.planDelivery100 && !delivery.actualDelivery100) ||
+                               (delivery.planMaterialAtSite100 && !delivery.actualMaterialAtSite100);
+                    } else if (status === 'upcoming') {
+                        return delivery.planDelivery100 && delivery.planDelivery100 > today;
+                    }
+                    return true;
+                });
+            }
+            
+            // Sort by plan delivery date
+            filteredPackages.sort((a, b) => {
+                const dateA = a.delivery?.planDelivery100 || '9999-12-31';
+                const dateB = b.delivery?.planDelivery100 || '9999-12-31';
+                return dateA.localeCompare(dateB);
+            });
+            
+            if (filteredPackages.length === 0) {
+                document.getElementById('ganttChartContainer').innerHTML = '<div style="text-align: center; padding: 3rem; color: #64748b;">No schedule data available for selected filters</div>';
+                updateScheduleStats();
+                return;
+            }
+            
+            // Find date range
+            const allDates = [];
+            filteredPackages.forEach(p => {
+                if (p.delivery?.planDelivery100) allDates.push(new Date(p.delivery.planDelivery100));
+                if (p.delivery?.actualDelivery100) allDates.push(new Date(p.delivery.actualDelivery100));
+                if (p.delivery?.planMaterialAtSite100) allDates.push(new Date(p.delivery.planMaterialAtSite100));
+                if (p.delivery?.actualMaterialAtSite100) allDates.push(new Date(p.delivery.actualMaterialAtSite100));
+            });
+            
+            if (allDates.length === 0) {
+                document.getElementById('ganttChartContainer').innerHTML = '<div style="text-align: center; padding: 3rem; color: #64748b;">No schedule data available</div>';
+                updateScheduleStats();
+                return;
+            }
+            
+            const minDate = new Date(Math.min(...allDates));
+            const maxDate = new Date(Math.max(...allDates));
+            
+            // Add padding to date range
+            minDate.setMonth(minDate.getMonth() - 1);
+            maxDate.setMonth(maxDate.getMonth() + 2);
+            
+            // Set to first day of month
+            minDate.setDate(1);
+            maxDate.setDate(1);
+            
+            // Helper function to format date as dd-MMM-yy
+            const formatDate = (dateStr) => {
+                if (!dateStr) return '';
+                const date = new Date(dateStr);
+                const day = String(date.getDate()).padStart(2, '0');
+                const month = date.toLocaleString('en-US', { month: 'short' });
+                const year = String(date.getFullYear()).slice(-2);
+                return `${day}-${month}-${year}`;
+            };
+            
+            // Generate months for header
+            const months = [];
+            const currentDate = new Date(minDate);
+            while (currentDate <= maxDate) {
+                months.push({
+                    year: currentDate.getFullYear(),
+                    month: currentDate.getMonth(),
+                    label: currentDate.toLocaleString('en-US', { month: 'short', year: 'numeric' }),
+                    firstDay: new Date(currentDate.getFullYear(), currentDate.getMonth(), 1),
+                    daysInMonth: new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0).getDate()
+                });
+                currentDate.setMonth(currentDate.getMonth() + 1);
+            }
+            
+            // Calculate dimensions
+            const dayWidth = 3;
+            const rowHeight = 60;
+            const leftColumnWidth = 300;
+            const totalDays = Math.ceil((maxDate - minDate) / (1000 * 60 * 60 * 24));
+            const chartWidth = totalDays * dayWidth;
+            
+            // Build Gantt chart HTML
+            let ganttHTML = `
+                <div style="display: flex; min-width: ${chartWidth + leftColumnWidth}px; border: 1px solid #334155; border-radius: 8px; overflow: hidden;">
+                    <!-- Y-Axis: Package Names Column -->
+                    <div style="width: ${leftColumnWidth}px; flex-shrink: 0; border-right: 2px solid #475569; background: rgba(15, 23, 42, 0.9);">
+                        <!-- Header -->
+                        <div style="height: 80px; background: rgba(15, 23, 42, 0.95); border-bottom: 2px solid #475569; display: flex; align-items: center; justify-content: center; font-weight: 700; color: white; position: sticky; top: 0; z-index: 20; font-size: 0.9rem;">
+                            PACKAGE NAME
+                        </div>
+            `;
+            
+            // Package names (Y-axis items)
+            filteredPackages.forEach((pkg, index) => {
+                const bgColor = index % 2 === 0 ? 'rgba(30, 41, 59, 0.5)' : 'rgba(15, 23, 42, 0.5)';
+                ganttHTML += `
+                    <div style="height: ${rowHeight}px; padding: 0.75rem; border-bottom: 1px solid #334155; display: flex; flex-direction: column; justify-content: center; background: ${bgColor};">
+                        <div style="font-size: 0.85rem; font-weight: 600; color: #e2e8f0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; margin-bottom: 0.25rem;" title="${pkg.packageName}">
+                            ${pkg.packageName}
+                        </div>
+                        <div style="font-size: 0.7rem; color: #94a3b8;">
+                            ${pkg.discipline || 'N/A'} • ${pkg.vendorName || 'N/A'}
+                        </div>
+                    </div>
+                `;
+            });
+            
+            ganttHTML += `
+                    </div>
+                    
+                    <!-- X-Axis: Timeline Column -->
+                    <div style="flex: 1; overflow-x: auto; position: relative;">
+                        <!-- Timeline Header (X-axis: Months) -->
+                        <div style="height: 80px; background: rgba(15, 23, 42, 0.95); border-bottom: 2px solid #475569; display: flex; position: sticky; top: 0; z-index: 10;">
+            `;
+            
+            // Month headers (X-axis)
+            months.forEach(month => {
+                const monthWidth = month.daysInMonth * dayWidth;
+                ganttHTML += `
+                    <div style="min-width: ${monthWidth}px; width: ${monthWidth}px; border-right: 1px solid #475569; padding: 0.5rem; display: flex; flex-direction: column; align-items: center; justify-content: center;">
+                        <div style="font-size: 0.8rem; font-weight: 700; color: #14b8a6;">${month.label.split(' ')[0]}</div>
+                        <div style="font-size: 0.7rem; color: #94a3b8;">${month.label.split(' ')[1]}</div>
+                    </div>
+                `;
+            });
+            
+            ganttHTML += `
+                        </div>
+                        
+                        <!-- Timeline Grid and Bars -->
+                        <div style="position: relative; min-height: ${filteredPackages.length * rowHeight}px;">
+            `;
+            
+            // Draw vertical grid lines for months
+            let xPos = 0;
+            months.forEach((month, idx) => {
+                const monthWidth = month.daysInMonth * dayWidth;
+                const lineColor = idx % 2 === 0 ? '#334155' : '#1e293b';
+                ganttHTML += `
+                    <div style="position: absolute; left: ${xPos}px; top: 0; bottom: 0; width: ${monthWidth}px; background: ${lineColor}; opacity: 0.3; border-right: 1px solid #475569;"></div>
+                `;
+                xPos += monthWidth;
+            });
+            
+            // Add today marker
+            const today = new Date();
+            const todayOffset = Math.floor((today - minDate) / (1000 * 60 * 60 * 24)) * dayWidth;
+            if (todayOffset >= 0 && todayOffset <= chartWidth) {
+                ganttHTML += `
+                    <div style="position: absolute; left: ${todayOffset}px; top: 0; bottom: 0; width: 2px; background: #f59e0b; z-index: 8;">
+                        <div style="position: sticky; top: 85px; left: -25px; width: 50px; text-align: center; font-size: 0.65rem; color: #f59e0b; font-weight: 700; background: rgba(15, 23, 42, 0.9); padding: 0.25rem; border-radius: 4px; border: 1px solid #f59e0b;">TODAY</div>
+                    </div>
+                `;
+            }
+            
+            // Draw bars for each package (rows)
+            filteredPackages.forEach((pkg, index) => {
+                const delivery = pkg.delivery || {};
+                const bgColor = index % 2 === 0 ? 'rgba(30, 41, 59, 0.5)' : 'rgba(15, 23, 42, 0.5)';
+                const yPos = index * rowHeight;
+                
+                // Background row
+                ganttHTML += `<div style="position: absolute; top: ${yPos}px; left: 0; right: 0; height: ${rowHeight}px; border-bottom: 1px solid #334155; background: ${bgColor}; z-index: 1;"></div>`;
+                
+                // Helper function to draw bar with date label
+                const drawBarWithLabel = (dateStr, color, label, yOffset) => {
+                    if (!dateStr) return '';
+                    const date = new Date(dateStr);
+                    const offset = Math.floor((date - minDate) / (1000 * 60 * 60 * 24)) * dayWidth;
+                    const barWidth = 12;
+                    const barHeight = 18;
+                    const formattedDate = formatDate(dateStr);
+                    
+                    return `
+                        <div style="position: absolute; top: ${yPos + yOffset}px; left: ${offset}px; display: flex; align-items: center; z-index: 5;">
+                            <div style="width: ${barWidth}px; height: ${barHeight}px; background: ${color}; border-radius: 3px; cursor: pointer; box-shadow: 0 2px 4px rgba(0,0,0,0.3);" 
+                                 title="${label}: ${dateStr}">
+                            </div>
+                            <div style="margin-left: 6px; font-size: 0.7rem; color: #94a3b8; white-space: nowrap; font-weight: 500; text-shadow: 1px 1px 2px rgba(0,0,0,0.8);">
+                                ${formattedDate}
+                            </div>
+                        </div>
+                    `;
+                };
+                
+                // Helper function to draw span bar (for delays)
+                const drawSpanBar = (startDate, endDate, color, label, yOffset) => {
+                    if (!startDate) return '';
+                    const start = new Date(startDate);
+                    const end = endDate ? new Date(endDate) : new Date();
+                    const startOffset = Math.floor((start - minDate) / (1000 * 60 * 60 * 24)) * dayWidth;
+                    const endOffset = Math.floor((end - minDate) / (1000 * 60 * 60 * 24)) * dayWidth;
+                    const barWidth = Math.max(endOffset - startOffset, 5);
+                    const barHeight = 8;
+                    
+                    return `
+                        <div style="position: absolute; top: ${yPos + yOffset}px; left: ${startOffset}px; width: ${barWidth}px; height: ${barHeight}px; background: ${color}; border-radius: 2px; z-index: 4; opacity: 0.7;" 
+                             title="${label}: ${startDate} → ${endDate || 'Ongoing'}">
+                        </div>
+                    `;
+                };
+                
+                // Delivery bars with date labels
+                if (view === 'delivery' || view === 'both') {
+                    ganttHTML += drawBarWithLabel(delivery.planDelivery100, '#06b6d4', 'Plan Delivery', 12);
+                    ganttHTML += drawBarWithLabel(delivery.actualDelivery100, '#14b8a6', 'Actual Delivery', 12);
+                }
+                
+                // Material on Site bars with date labels
+                if (view === 'material' || view === 'both') {
+                    const yOffset = view === 'both' ? 35 : 12;
+                    ganttHTML += drawBarWithLabel(delivery.planMaterialAtSite100, '#8b5cf6', 'Plan Material On Site', yOffset);
+                    ganttHTML += drawBarWithLabel(delivery.actualMaterialAtSite100, '#a855f7', 'Actual Material On Site', yOffset);
+                }
+                
+                // Delay indicator (span from plan to today if not completed)
+                if (delivery.planDelivery100 && !delivery.actualDelivery100) {
+                    const planDate = new Date(delivery.planDelivery100);
+                    if (planDate < today) {
+                        ganttHTML += drawSpanBar(delivery.planDelivery100, today.toISOString().split('T')[0], '#ef4444', 'Delayed', 48);
+                    }
+                }
+            });
+            
+            ganttHTML += `
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            document.getElementById('ganttChartContainer').innerHTML = ganttHTML;
+            
+            // Update statistics
+            updateScheduleStats();
+        }
+        
+        function updateScheduleStats() {
+            const pkgs = packages.filter(p => p.projectId === selectedProject);
+            const today = new Date().toISOString().split('T')[0];
+            
+            let inTransit = 0;
+            let onSite = 0;
+            let delayed = 0;
+            
+            pkgs.forEach(p => {
+                const delivery = p.delivery || {};
+                
+                // In transit: delivery done but not on site yet
+                if (delivery.actualDelivery100 && !delivery.actualMaterialAtSite100) {
+                    inTransit++;
+                }
+                
+                // On site: material received at site
+                if (delivery.actualMaterialAtSite100) {
+                    onSite++;
+                }
+                
+                // Delayed: plan date passed but not completed
+                if ((delivery.planDelivery100 && delivery.planDelivery100 < today && !delivery.actualDelivery100) ||
+                    (delivery.planMaterialAtSite100 && delivery.planMaterialAtSite100 < today && !delivery.actualMaterialAtSite100)) {
+                    delayed++;
+                }
+            });
+            
+            document.getElementById('schedTotalPackages').textContent = pkgs.length;
+            document.getElementById('schedInTransit').textContent = inTransit;
+            document.getElementById('schedOnSite').textContent = onSite;
+            document.getElementById('schedDelayed').textContent = delayed;
+        }
+        
+        function populateScheduleFilters() {
+            // Get all unique disciplines from packages
+            const allPackages = packages.filter(p => p.projectId === selectedProject);
+            const disciplines = [...new Set(allPackages.map(p => p.discipline).filter(d => d))].sort();
+            
+            const disciplineSelect = document.getElementById('scheduleDisciplineFilter');
+            disciplineSelect.innerHTML = '<option value="all">All Disciplines</option>';
+            
+            disciplines.forEach(d => {
+                disciplineSelect.innerHTML += `<option value="${d}">${d}</option>`;
+            });
+            
+            console.log('Populated disciplines:', disciplines);
+        }
+        
+        function exportSchedule() {
+            const view = document.getElementById('scheduleViewFilter').value;
+            let csv = 'Package Name,Discipline,Plan Delivery,Actual Delivery,Plan On Site,Actual On Site,Status\n';
+            
+            packages.filter(p => p.projectId === selectedProject).forEach(p => {
+                const delivery = p.delivery || {};
+                const today = new Date().toISOString().split('T')[0];
+                
+                let status = 'Pending';
+                if (delivery.actualMaterialAtSite100) status = 'On Site';
+                else if (delivery.actualDelivery100) status = 'In Transit';
+                else if (delivery.planDelivery100 && delivery.planDelivery100 < today) status = 'Delayed';
+                else if (delivery.planDelivery100) status = 'Scheduled';
+                
+                csv += `"${p.packageName}","${p.discipline}","${delivery.planDelivery100 || ''}","${delivery.actualDelivery100 || ''}","${delivery.planMaterialAtSite100 || ''}","${delivery.actualMaterialAtSite100 || ''}","${status}"\n`;
+            });
+            
+            const blob = new Blob([csv], { type: 'text/csv' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `schedule_${new Date().toISOString().split('T')[0]}.csv`;
+            a.click();
+            URL.revokeObjectURL(url);
+            
+            showNotification('Schedule exported successfully!', 'success');
+        }
+        
+</script>
 </body>
 </html>
